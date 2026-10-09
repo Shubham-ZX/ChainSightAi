@@ -1,0 +1,327 @@
+{
+  "entities": {
+    "Manifest": {
+      "title": "Manifest",
+      "description": "Software supply chain target manifest document",
+      "type": "object",
+      "properties": {
+        "repository": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Repository identifier"
+        },
+        "filePath": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Path to the lockfile manifest"
+        },
+        "branch": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Branch name"
+        },
+        "commitHash": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Git commit SHA"
+        },
+        "syncedAgo": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Human readable sync time"
+        },
+        "provenance": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Provenance verification string"
+        },
+        "sha256": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "SHA256 signature hash"
+        },
+        "sigValid": {
+          "type": "boolean",
+          "description": "Whether cryptographic signature is valid"
+        },
+        "totalPackages": {
+          "type": "number",
+          "description": "Total dependency package count"
+        },
+        "directPackages": {
+          "type": "number",
+          "description": "Direct dependency count"
+        },
+        "transitivePackages": {
+          "type": "number",
+          "description": "Transitive dependency count"
+        },
+        "packageDelta": {
+          "type": "number",
+          "description": "Package delta compared to baseline"
+        },
+        "ownerId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Firebase user UID who registered the manifest"
+        },
+        "createdAt": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Creation ISO timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Last update ISO timestamp"
+        }
+      },
+      "required": ["repository", "filePath", "branch", "commitHash", "ownerId"]
+    },
+    "Scan": {
+      "title": "Scan",
+      "description": "Historical lockfile scan record",
+      "type": "object",
+      "properties": {
+        "target": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Manifest target path"
+        },
+        "branch": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Branch name"
+        },
+        "commit": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Git commit SHA"
+        },
+        "scanTime": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Scan timestamp text"
+        },
+        "duration": {
+          "type": "string",
+          "maxLength": 32,
+          "description": "Scan runtime duration"
+        },
+        "packagesCount": {
+          "type": "number",
+          "description": "Package count analyzed"
+        },
+        "criticalCount": {
+          "type": "number",
+          "description": "Number of critical vulnerabilities"
+        },
+        "highCount": {
+          "type": "number",
+          "description": "Number of high vulnerabilities"
+        },
+        "status": {
+          "type": "string",
+          "maxLength": 32,
+          "enum": ["VULNERABLE", "CLEAN", "FIXED"],
+          "description": "Overall vulnerability status"
+        },
+        "remediationStatus": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Remediation status message"
+        },
+        "ownerId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Firebase user UID"
+        },
+        "createdAt": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Record creation timestamp"
+        }
+      },
+      "required": ["target", "branch", "commit", "status", "ownerId"]
+    },
+    "Alert": {
+      "title": "Alert",
+      "description": "Supply chain vulnerability alert document",
+      "type": "object",
+      "properties": {
+        "cveId": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "CVE identifier"
+        },
+        "pkgName": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Vulnerable package name"
+        },
+        "currentVersion": {
+          "type": "string",
+          "maxLength": 32,
+          "description": "Current vulnerable version"
+        },
+        "fixedVersion": {
+          "type": "string",
+          "maxLength": 32,
+          "description": "Patched target version"
+        },
+        "severity": {
+          "type": "string",
+          "maxLength": 32,
+          "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW"],
+          "description": "Severity tier"
+        },
+        "cvss": {
+          "type": "number",
+          "description": "CVSS v3.1 score"
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "Exploit cascade summary description"
+        },
+        "blastServices": {
+          "type": "number",
+          "description": "Number of compromised microservices"
+        },
+        "repo": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Affected repository"
+        },
+        "firstDetected": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Detection timestamp"
+        },
+        "slaRemaining": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "SLA compliance timer"
+        },
+        "status": {
+          "type": "string",
+          "maxLength": 32,
+          "enum": ["ACTIVE", "PATCH_PENDING", "RESOLVED", "TRIAGED", "DISMISSED"],
+          "description": "Triage status"
+        },
+        "ownerId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Firebase user UID"
+        },
+        "createdAt": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Creation timestamp"
+        }
+      },
+      "required": ["cveId", "pkgName", "currentVersion", "fixedVersion", "severity", "status", "ownerId"]
+    },
+    "Audit": {
+      "title": "Audit",
+      "description": "SLSA provenance and cryptographic audit entry",
+      "type": "object",
+      "properties": {
+        "artifact": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "Container image or package artifact name"
+        },
+        "slsaLevel": {
+          "type": "string",
+          "maxLength": 32,
+          "enum": ["SLSA L3", "SLSA L2", "SLSA L1"],
+          "description": "SLSA provenance level"
+        },
+        "cosignStatus": {
+          "type": "string",
+          "maxLength": 32,
+          "enum": ["VERIFIED", "VALID", "WARNING"],
+          "description": "Cosign signature check status"
+        },
+        "signer": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "KMS Key / OIDC identity signer"
+        },
+        "sha256": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "SHA256 signature hash"
+        },
+        "policyCheck": {
+          "type": "string",
+          "maxLength": 32,
+          "enum": ["COMPLIANT", "OVERRIDDEN", "FLAGGED"],
+          "description": "Security policy evaluation"
+        },
+        "attestationUri": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "in-toto attestation JSON-LD URL"
+        },
+        "ownerId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Firebase user UID"
+        },
+        "createdAt": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Attestation record timestamp"
+        }
+      },
+      "required": ["artifact", "slsaLevel", "cosignStatus", "signer", "sha256", "policyCheck", "ownerId"]
+    },
+    "TestDoc": {
+      "title": "TestDoc",
+      "description": "System connectivity heartbeat test document",
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "maxLength": 32,
+          "description": "Connection status string"
+        }
+      },
+      "required": ["status"]
+    }
+  },
+  "firestore": {
+    "/manifests/{manifestId}": {
+      "schema": {
+        "$ref": "#/entities/Manifest"
+      },
+      "description": "Target manifest documents registered in supply chain security monitor"
+    },
+    "/scans/{scanId}": {
+      "schema": {
+        "$ref": "#/entities/Scan"
+      },
+      "description": "Manifest scan execution logs and SBOM deltas"
+    },
+    "/alerts/{alertId}": {
+      "schema": {
+        "$ref": "#/entities/Alert"
+      },
+      "description": "Security alerts and exploit cascade triage items"
+    },
+    "/audits/{auditId}": {
+      "schema": {
+        "$ref": "#/entities/Audit"
+      },
+      "description": "SLSA L3 cryptographic provenance records"
+    },
+    "/test/{docId}": {
+      "schema": {
+        "$ref": "#/entities/TestDoc"
+      },
+      "description": "Connectivity health verification document"
+    }
+  }
+}

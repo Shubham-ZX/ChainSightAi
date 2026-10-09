@@ -1,0 +1,6 @@
+{
+  "name": "ChainSight - Software Supply Chain Security",
+  "description": "Interactive dependency tree provenance inspector, transitive vulnerability propagation, exploit cascade modeling, and blast radius remediation dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

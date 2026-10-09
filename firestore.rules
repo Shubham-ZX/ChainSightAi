@@ -1,0 +1,110 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net: Default-deny all unmapped collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Hardened Global Security Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isOwner(ownerId) {
+      return isSignedIn() && request.auth.uid == ownerId;
+    }
+
+    // 3. Validation Blueprints
+    function isValidManifest(data) {
+      return data.repository is string && data.repository.size() > 0 && data.repository.size() <= 128
+        && data.filePath is string && data.filePath.size() > 0 && data.filePath.size() <= 128
+        && data.branch is string && data.branch.size() > 0 && data.branch.size() <= 64
+        && data.commitHash is string && data.commitHash.size() > 0 && data.commitHash.size() <= 64
+        && data.ownerId is string && data.ownerId == request.auth.uid;
+    }
+
+    function isValidScan(data) {
+      return data.target is string && data.target.size() > 0 && data.target.size() <= 128
+        && data.branch is string && data.branch.size() > 0 && data.branch.size() <= 64
+        && data.commit is string && data.commit.size() > 0 && data.commit.size() <= 64
+        && data.status in ['VULNERABLE', 'CLEAN', 'FIXED']
+        && data.ownerId is string && data.ownerId == request.auth.uid;
+    }
+
+    function isValidAlert(data) {
+      return data.cveId is string && data.cveId.size() > 0 && data.cveId.size() <= 64
+        && data.pkgName is string && data.pkgName.size() > 0 && data.pkgName.size() <= 128
+        && data.currentVersion is string && data.currentVersion.size() > 0 && data.currentVersion.size() <= 32
+        && data.fixedVersion is string && data.fixedVersion.size() > 0 && data.fixedVersion.size() <= 32
+        && data.severity in ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']
+        && data.status in ['ACTIVE', 'PATCH_PENDING', 'RESOLVED', 'TRIAGED', 'DISMISSED']
+        && data.ownerId is string && data.ownerId == request.auth.uid;
+    }
+
+    function isValidAudit(data) {
+      return data.artifact is string && data.artifact.size() > 0 && data.artifact.size() <= 256
+        && data.slsaLevel in ['SLSA L3', 'SLSA L2', 'SLSA L1']
+        && data.cosignStatus in ['VERIFIED', 'VALID', 'WARNING']
+        && data.signer is string && data.signer.size() > 0 && data.signer.size() <= 256
+        && data.sha256 is string && data.sha256.size() > 0 && data.sha256.size() <= 128
+        && data.policyCheck in ['COMPLIANT', 'OVERRIDDEN', 'FLAGGED']
+        && data.ownerId is string && data.ownerId == request.auth.uid;
+    }
+
+    function isValidTestDoc(data) {
+      return data.status is string && data.status.size() > 0 && data.status.size() <= 32;
+    }
+
+    // 4. Test connection collection
+    match /test/{docId} {
+      allow read: if true;
+      allow create, update: if isSignedIn() && isValidId(docId) && isValidTestDoc(incoming());
+      allow delete: if isSignedIn() && isValidId(docId);
+    }
+
+    // 5. Manifests collection
+    match /manifests/{manifestId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(manifestId) && isValidManifest(incoming()) && incoming().ownerId == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(manifestId) && isValidManifest(incoming()) && incoming().ownerId == existing().ownerId && isOwner(existing().ownerId);
+      allow delete: if isSignedIn() && isValidId(manifestId) && isOwner(existing().ownerId);
+    }
+
+    // 6. Scans collection
+    match /scans/{scanId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(scanId) && isValidScan(incoming()) && incoming().ownerId == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(scanId) && isValidScan(incoming()) && incoming().ownerId == existing().ownerId && isOwner(existing().ownerId);
+      allow delete: if isSignedIn() && isValidId(scanId) && isOwner(existing().ownerId);
+    }
+
+    // 7. Alerts collection
+    match /alerts/{alertId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(alertId) && isValidAlert(incoming()) && incoming().ownerId == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(alertId) && isValidAlert(incoming()) && incoming().ownerId == existing().ownerId && isOwner(existing().ownerId);
+      allow delete: if isSignedIn() && isValidId(alertId) && isOwner(existing().ownerId);
+    }
+
+    // 8. Audits collection
+    match /audits/{auditId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(auditId) && isValidAudit(incoming()) && incoming().ownerId == request.auth.uid;
+      allow update: if isSignedIn() && isValidId(auditId) && isValidAudit(incoming()) && incoming().ownerId == existing().ownerId && isOwner(existing().ownerId);
+      allow delete: if isSignedIn() && isValidId(auditId) && isOwner(existing().ownerId);
+    }
+  }
+}
